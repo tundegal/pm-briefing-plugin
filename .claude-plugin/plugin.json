@@ -1,0 +1,8 @@
+{
+  "name": "pm-briefing",
+  "description": "PIP the Owl guides PMs through a 7-question UX briefing interview and generates a structured brief ready to paste into Confluence or Jira.",
+  "author": {
+    "name": "tundegal",
+    "email": ""
+  }
+}
