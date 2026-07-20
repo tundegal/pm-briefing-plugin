@@ -217,7 +217,7 @@ Extract the available options for these four fields:
 
 Store the options as numbered lists for display to the PM.
 
-If fetching fails, skip to step 4d with empty option lists and note the failure inline.
+If fetching fails, continue to step 4c as normal, then proceed to step 4d with empty option lists and display this message before the first question: "Note: I couldn't fetch the option lists from Jira — please type your answers as free text."
 
 ### 4c: Show pre-fill preview
 
@@ -326,6 +326,9 @@ Call `createJiraIssue` with:
 - `summary`: [feature_name]
 - `description`: the full markdown brief content (same as `{{MARKDOWN}}` placeholder from the brief)
 - `additional_fields`:
+
+  Use the field key (not the display name) returned by `getJiraIssueTypeMetaWithFields` for each `additional_fields` entry. Field keys look like `customfield_XXXXX` for custom fields and standard names like `components` for system fields.
+
   - Strategic Initiative → value from field 1
   - Planned Development Start → value from field 2
   - Cloud Name → value from field 3
