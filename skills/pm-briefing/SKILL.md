@@ -177,6 +177,191 @@ open ~/.claude/skills/pm-briefing/output/brief-[filename].html
 Brief saved to: ~/.claude/skills/pm-briefing/output/brief-[filename].html
 ```
 
+## Step 4: Jira setup
+
+Immediately after printing the Step 3 celebration block, print the transition message:
+
+```
+    ,___,
+   (O v O)
+   /)   (\
+    ^ ^ ^
+
+Great — your brief is ready! One more thing: let me help you push this straight
+into Jira. I just need a few extra details.
+```
+
+### 4a: Resolve Jira connection
+
+Call `getAccessibleAtlassianResources` to get the cloudId for `emarsys.jira.com`.
+
+If this call fails or returns no results, print:
+```
+Hmm, I couldn't connect to Jira right now. Your brief is still open in the
+browser — you can copy the markdown from there and paste it manually.
+```
+Then stop Step 4.
+
+### 4b: Fetch dropdown options
+
+Using the resolved cloudId, call `getJiraIssueTypeMetaWithFields` with:
+- `projectIdOrKey`: the UX backlog project key (search for it using `getVisibleJiraProjects` with `searchString: "UX"` if not known)
+- `issueTypeId`: the Epic issue type ID (get it from `getJiraProjectIssueTypesMetadata`)
+- `requiredFieldsOnly`: false
+
+Extract the available options for these four fields:
+- `Strategic Initiative` (custom field)
+- `Planned Development Start` (custom field)
+- `Cloud Name` (custom field)
+- `Components` (standard field)
+
+Store the options as numbered lists for display to the PM.
+
+If fetching fails, skip to step 4d with empty option lists and note the failure inline.
+
+### 4c: Show pre-fill preview
+
+Print the following, substituting real values:
+
+```
+    ,___,
+   (O v O)
+   /)   (\
+    ^ ^ ^
+
+Here's what I already know from your brief:
+
+  Epic Name         →  [feature_name]
+  Problem Summary   →  [Q1 answer, truncated to 80 chars if longer]
+  Desired Outcome   →  [Q3 answer, truncated to 80 chars if longer]
+  Product Manager   →  [pm_name]
+
+I just need 5 more things to create the ticket.
+```
+
+### 4d: Ask the 5 Jira fields
+
+Ask each field one at a time. Use progress indicator `[N / 5]`. After each answer, print PIP's happy reaction (same format as Step 2).
+
+**Field 1 — Strategic Initiative**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━  [1 / 5]
+
+Which company-level initiative does this support? Pick the one that fits best.
+
+[Print numbered list of options fetched from Jira, e.g.:]
+  1. Growth
+  2. Retention
+  3. Platform Reliability
+  4. ...
+```
+
+PM types a number. Accept the corresponding option value.
+
+**Field 2 — Planned Development Start**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━  [2 / 5]
+
+When do you expect Engineering to begin work on this?
+
+[Print numbered list of options fetched from Jira, e.g.:]
+  1. In this cycle
+  2. In the next cycle
+  3. In the cycle after the next one
+  4. In a later cycle
+```
+
+PM types a number. Accept the corresponding option value.
+
+**Field 3 — Cloud Name**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━  [3 / 5]
+
+Which Cloud does this project belong to? This decides which board the ticket
+appears on.
+
+[Print numbered list of options fetched from Jira]
+```
+
+PM types a number. Accept the corresponding option value.
+
+**Field 4 — Components**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━  [4 / 5]
+
+Which UX team(s) should work on it?
+
+[Print numbered list of options fetched from Jira]
+```
+
+PM can type one or more numbers (e.g. "1, 3"). Accept all corresponding component values as a list.
+
+**Field 5 — Labels**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━  [5 / 5]
+
+Add any labels for filtering (e.g. "ux-review", "cycle-23"). Press Enter to skip.
+```
+
+PM types free text or presses Enter. If blank, omit the labels field from ticket creation.
+
+### 4e: Resolve Product Manager to Jira account ID
+
+Call `lookupJiraAccountId` with `searchString: [pm_name]`.
+
+- If an exact or near-exact match is found, use the returned `accountId` for the Product Manager field.
+- If no match is found, omit the Product Manager field and note it after ticket creation: "I couldn't find your Jira account — you can set the Product Manager field manually on the ticket."
+
+### 4f: Create the Jira ticket
+
+Call `createJiraIssue` with:
+- `cloudId`: resolved in 4a
+- `projectKey`: UX backlog project key
+- `issueTypeName`: "Epic"
+- `summary`: [feature_name]
+- `description`: the full markdown brief content (same as `{{MARKDOWN}}` placeholder from the brief)
+- `additional_fields`:
+  - Strategic Initiative → value from field 1
+  - Planned Development Start → value from field 2
+  - Cloud Name → value from field 3
+  - Components → list of values from field 4
+  - Labels → value from field 5 (omit if blank)
+  - Product Manager → accountId from 4e (omit if not resolved)
+
+**On success**, print:
+
+```
+    ,___,
+   (^ v ^)
+   /)   (\
+    ^ ^ ^
+
+(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧  Jira ticket created!
+
+  [TICKET-KEY] — [feature_name]
+  [ticket URL]
+```
+
+**On failure**, print:
+
+```
+    ,___,
+   (O v O)
+   /)   (\
+    ^ ^ ^
+
+Hmm, something went wrong creating the Jira ticket. The error was:
+[error message from MCP]
+
+Your brief is still open in the browser — you can copy the markdown from there
+and create the ticket manually.
+```
+
 ## Edge cases
 
 - **PM skips Q7 (references):** If the PM says "none", "N/A", or leaves it blank, write "None provided" in the brief. Do not ask a follow-up.
@@ -184,3 +369,6 @@ Brief saved to: ~/.claude/skills/pm-briefing/output/brief-[filename].html
 - **PM asks what PIP is:** Briefly explain: "I'm PIP, your UX briefing assistant 🦉 I'm here to help you structure your request so the design team has everything they need. Let's keep going!"
 - **PM wants to go back and change an answer:** Allow it. Ask "Which question would you like to revisit — Q1 through Q7?" Then re-ask that question, collect the new answer, and continue from where they left off.
 - **PM abandons mid-flow:** If the PM types "quit", "exit", or "cancel", respond: "No problem! Come back when you're ready. Your answers so far won't be saved." Then stop.
+- **PM abandons during Jira setup:** If the PM types "quit", "exit", or "cancel" during Step 4, respond: "No problem — your brief is still open in the browser. Come back when you're ready." Then stop.
+- **Jira auth failure:** If any MCP call returns an authentication error, print: "Looks like Jira needs you to log in first. Try running `/pm-briefing` again after authenticating your Atlassian MCP connection." Then stop Step 4.
+- **Option list empty (fetch failed):** If a dropdown option list is empty due to a fetch failure, ask the PM to type their answer as free text for that field, and pass it as a string value to `createJiraIssue`.
