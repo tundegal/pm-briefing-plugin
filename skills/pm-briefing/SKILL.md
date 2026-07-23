@@ -105,7 +105,7 @@ If thin, ask ONE context-aware follow-up based on which question it was and what
 
 After the follow-up answer (thin or not), always move on.
 
-## Step 3: Generate the brief
+## Step 3: Print the brief
 
 After Q7 is answered:
 
@@ -113,36 +113,46 @@ After Q7 is answered:
 
 2. Assess answer quality. For each of the 7 answers, flag it as weak if it is fewer than 15 words AND does not contain a specific detail (number, name, user type, system name, or concrete behaviour). Collect all weak sections into a list.
 
-3. Write the HTML brief file. Use the template at `~/.claude/skills/pm-briefing/brief-template.html` as a reference for structure and styling. Generate a new self-contained HTML file at:
-   `~/.claude/skills/pm-briefing/output/brief-[YYYY-MM-DD-HHmm].html`
+3. Print the brief in the terminal in this exact format:
 
-   Replace all `{{PLACEHOLDERS}}` with actual values:
-   - `{{FEATURE_NAME}}` → inferred feature name
-   - `{{DATE}}` → today's date (e.g. "6 July 2026")
-   - `{{PM_NAME}}` → name collected at intro
-   - `{{PROBLEM}}` → Q1 answer
-   - `{{AFFECTED_USERS}}` → Q2 answer (expand letter codes to full labels, e.g. "A, C" → "Marketer, B2C customer")
-   - `{{DESIRED_OUTCOME}}` → Q3 answer
-   - `{{SUCCESS_CRITERIA}}` → Q4 answer
-   - `{{DEPENDENCIES}}` → Q5 answer
-   - `{{OUT_OF_SCOPE}}` → Q6 answer
-   - `{{REFERENCES}}` → Q7 answer (if PM said "none" or left blank, write "None provided")
-   - `{{QUALITY_NOTE}}` → if weak sections exist, insert the amber warning block below; otherwise replace with empty string
-   - `{{MARKDOWN}}` → the markdown block (see format below)
-
-4. Quality note HTML (insert when weak sections exist):
-```html
-<div class="warning">
-  <div class="warning-header">
-    <span>⚠️</span>
-    <div class="warning-label">PIP's quality note</div>
-  </div>
-  <p>[List the weak sections by name and give a specific, constructive suggestion for each. Tone: helpful, not critical.]</p>
-</div>
 ```
+    ,___,
+   (^ v ^)
+   /)   (\
+    ^ ^ ^
 
-5. Markdown block format:
-```
+(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧  Here's your brief!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  UX BRIEF  ·  [FEATURE_NAME]
+  [DATE]  ·  Prepared by [PM_NAME]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  PROBLEM
+  [Q1 answer]
+
+  AFFECTED USERS
+  [Q2 answer, with letter codes expanded to full labels]
+
+  DESIRED OUTCOME
+  [Q3 answer]
+
+  SUCCESS CRITERIA
+  [Q4 answer]
+
+  DEPENDENCIES & CONSTRAINTS
+  [Q5 answer]
+
+  OUT OF SCOPE
+  [Q6 answer]
+
+  REFERENCES
+  [Q7 answer, or "None provided" if blank]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  MARKDOWN  ·  ready to paste into Confluence or Jira
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ## UX Brief: [FEATURE_NAME]
 **Problem:** [Q1 answer]
 **Affected users:** [Q2 expanded]
@@ -151,35 +161,22 @@ After Q7 is answered:
 **Dependencies:** [Q5 answer]
 **Out of scope:** [Q6 answer]
 **References:** [Q7 answer]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-6. Create the output folder if it doesn't exist:
-```bash
-mkdir -p ~/.claude/skills/pm-briefing/output
-```
-
-7. Write the generated HTML to the output file using the Write tool.
-
-8. Open the generated file in the browser:
-```bash
-open ~/.claude/skills/pm-briefing/output/brief-[filename].html
-```
-
-9. Print in the terminal:
+4. If weak sections exist, print the quality note immediately after the brief block:
 
 ```
-    ,___,
-   (^ v ^)
-   /)   (\
-    ^ ^ ^
+  ⚠️  PIP's quality note
 
-(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧  Your brief is ready! Opening in browser...
-Brief saved to: ~/.claude/skills/pm-briefing/output/brief-[filename].html
+  [List weak sections by name with a specific, constructive suggestion each.
+   Tone: helpful, not critical.]
 ```
 
 ## Step 4: Jira setup
 
-Immediately after printing the Step 3 celebration block, print the transition message:
+Immediately after printing the brief (and quality note if present), print the transition message:
 
 ```
     ,___,
@@ -197,8 +194,8 @@ Call `getAccessibleAtlassianResources` to get the cloudId for `emarsys.jira.com`
 
 If this call fails or returns no results, print:
 ```
-Hmm, I couldn't connect to Jira right now. Your brief is still open in the
-browser — you can copy the markdown from there and paste it manually.
+Hmm, I couldn't connect to Jira right now. You can copy the markdown above
+and paste it manually.
 ```
 Then stop Step 4.
 
@@ -324,7 +321,8 @@ Call `createJiraIssue` with:
 - `projectKey`: UX backlog project key
 - `issueTypeName`: "Epic"
 - `summary`: [feature_name]
-- `description`: the full markdown brief content (same as `{{MARKDOWN}}` placeholder from the brief)
+- `description`: the full markdown brief content (same as printed in Step 3)
+- `contentFormat`: "adf" — wrap all textarea fields in ADF format: `{"type": "doc", "version": 1, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "..."}]}]}`
 - `additional_fields`:
 
   Use the field key (not the display name) returned by `getJiraIssueTypeMetaWithFields` for each `additional_fields` entry. Field keys look like `customfield_XXXXX` for custom fields and standard names like `components` for system fields.
@@ -335,6 +333,8 @@ Call `createJiraIssue` with:
   - Components → list of values from field 4
   - Labels → value from field 5 (omit if blank)
   - Product Manager → accountId from 4e (omit if not resolved)
+
+  Any required fields not covered above must also be included. If the project schema requires fields not listed here (e.g. Business Impact, OKR, Project History, Expectation from UX), include them with ADF-wrapped placeholder text: "To be filled in."
 
 **On success**, print:
 
@@ -361,17 +361,16 @@ Call `createJiraIssue` with:
 Hmm, something went wrong creating the Jira ticket. The error was:
 [error message from MCP]
 
-Your brief is still open in the browser — you can copy the markdown from there
-and create the ticket manually.
+You can copy the markdown above and create the ticket manually.
 ```
 
 ## Edge cases
 
-- **PM skips Q7 (references):** If the PM says "none", "N/A", or leaves it blank, write "None provided" in the brief. Do not ask a follow-up.
+- **PM skips Q7 (references):** If the PM says "none", "N/A", or leaves it blank, write "None provided". Do not ask a follow-up.
 - **PM gives a very long answer:** Accept it as-is. Do not summarise or truncate.
 - **PM asks what PIP is:** Briefly explain: "I'm PIP, your UX briefing assistant 🦉 I'm here to help you structure your request so the design team has everything they need. Let's keep going!"
 - **PM wants to go back and change an answer:** Allow it. Ask "Which question would you like to revisit — Q1 through Q7?" Then re-ask that question, collect the new answer, and continue from where they left off.
 - **PM abandons mid-flow:** If the PM types "quit", "exit", or "cancel", respond: "No problem! Come back when you're ready. Your answers so far won't be saved." Then stop.
-- **PM abandons during Jira setup:** If the PM types "quit", "exit", or "cancel" during Step 4, respond: "No problem — your brief is still open in the browser. Come back when you're ready." Then stop.
+- **PM abandons during Jira setup:** If the PM types "quit", "exit", or "cancel" during Step 4, respond: "No problem — you can copy the markdown above and create the ticket manually." Then stop.
 - **Jira auth failure:** If any MCP call returns an authentication error, print: "Looks like Jira needs you to log in first. Try running `/pm-briefing` again after authenticating your Atlassian MCP connection." Then stop Step 4.
 - **Option list empty (fetch failed):** If a dropdown option list is empty due to a fetch failure, ask the PM to type their answer as free text for that field, and pass it as a string value to `createJiraIssue`.
