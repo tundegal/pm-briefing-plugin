@@ -334,7 +334,17 @@ Call `createJiraIssue` with:
   - Labels → value from field 5 (omit if blank)
   - Product Manager → accountId from 4e (omit if not resolved)
 
-  Any required fields not covered above must also be included. If the project schema requires fields not listed here (e.g. Business Impact, OKR, Project History, Expectation from UX), include them with ADF-wrapped placeholder text: "To be filled in."
+  - Project Background (`customfield_20969`) → ADF-wrapped block containing the remaining brief fields not mapped to dedicated Jira fields, formatted as:
+
+    ```
+    Affected users: [Q2 expanded]
+    Success criteria: [Q4 answer]
+    Dependencies & constraints: [Q5 answer]
+    Out of scope: [Q6 answer]
+    References: [Q7 answer]
+    ```
+
+  Any other required fields not covered above must be included with ADF-wrapped placeholder text: "To be filled in."
 
 **On success**, print:
 
