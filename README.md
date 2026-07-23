@@ -4,7 +4,17 @@ A Claude Code plugin that helps PMs write proper UX briefs before handing work t
 
 ## What it does
 
-PIP the Owl 🦉 guides your PM through 7 focused questions in a friendly conversational interview. At the end, a structured HTML brief is generated — ready to paste into Confluence or Jira.
+PIP the Owl 🦉 guides your PM through 7 focused questions in a friendly, gamified conversational interview. At the end, a structured brief is printed in the terminal and a Jira ticket is created automatically.
+
+PIP is expressive — he reacts differently depending on how the conversation is going:
+
+```
+Neutral          Happy            Celebrating
+    ,___,            ,___,            ,___,
+   (O v O)          (^ v ^)          (* v *)
+   /)   (\          /)   (\          \)   (/
+    ^ ^ ^            ^ ^ ^            ^ ^ ^
+```
 
 ## Install
 
@@ -29,10 +39,11 @@ The PM runs this in Claude Code. PIP asks 7 questions, one at a time:
 6. What are we explicitly NOT doing in this iteration?
 7. Any examples or references to consider?
 
-Thin answers get one gentle, context-aware follow-up. At the end, confetti fires and a formatted brief opens in the browser.
+Thin answers get one gentle, context-aware follow-up. At Q4 a halfway milestone fires. At the end, a formatted brief is printed and PIP helps push it straight to Jira.
 
 ## Output
 
-- Structured brief with all 7 sections
-- ⚠️ Quality note if any answers were vague
+- Structured brief printed in the terminal
 - Markdown block ready to paste into Confluence or Jira
+- ⚠️ Quality note if any answers were vague
+- Jira Task created in the UXT project with all brief fields mapped
