@@ -203,7 +203,7 @@ Then stop Step 4.
 
 Using the resolved cloudId, call `getJiraIssueTypeMetaWithFields` with:
 - `projectIdOrKey`: the UX backlog project key (search for it using `getVisibleJiraProjects` with `searchString: "UX"` if not known)
-- `issueTypeId`: the Epic issue type ID (get it from `getJiraProjectIssueTypesMetadata`)
+- `issueTypeId`: the Task issue type ID (get it from `getJiraProjectIssueTypesMetadata`)
 - `requiredFieldsOnly`: false
 
 Extract the available options for these four fields:
@@ -319,7 +319,7 @@ Call `lookupJiraAccountId` with `searchString: [pm_name]`.
 Call `createJiraIssue` with:
 - `cloudId`: resolved in 4a
 - `projectKey`: UX backlog project key
-- `issueTypeName`: "Epic"
+- `issueTypeName`: "Task"
 - `summary`: [feature_name]
 - `description`: the full markdown brief content (same as printed in Step 3)
 - `contentFormat`: "adf" — wrap all textarea fields in ADF format: `{"type": "doc", "version": 1, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "..."}]}]}`
